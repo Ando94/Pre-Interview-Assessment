@@ -30,27 +30,36 @@ def main():
         print(df.head())
 
         # Define target and initial feature set
-        y = df['Sales']
-        # Drop identifier and target columns from features
-        X = df.drop(['Sales'], axis=1, errors='ignore')
-     
-        enc = OrdinalEncoder()
-        encoded = enc.fit_transform(y)
-        print(encoded)
+        # Target is the interview acceptance column in this dataset
+        y = df['accepted for the interview']
 
-        # Create and show a plot
-        if 'type' in df.columns:
-            fig = px.pie(df, names='type', title='Distribution of Transaction Types')
+        # Drop identifier and target columns from features
+        X = df.drop(['accepted for the interview', 'EmployeeNumber'], axis=1)
+
+        # Identify categorical columns to encode
+        categorical_cols = ['BusinessTravel', 'MaritalStatus', 'OverTime', 'Gender']
+
+        # Instantiate OrdinalEncoder correctly (no data passed to constructor)
+        enc = OrdinalEncoder()
+
+        # Encode only the categorical columns
+        X[categorical_cols] = enc.fit_transform(X[categorical_cols])
+
+        # Print a small sample of encoded features
+        print(X.head())
+
+        # Create and show a plot of the target distribution
+        if 'accepted for the interview' in df.columns:
+            fig = px.pie(df, names='accepted for the interview', title='Acceptance Distribution')
             fig.show()
         else:
-            print("No 'type' column found in the dataset")
-        
-       
+            print("No 'accepted for the interview' column found in the dataset")
+
+        # Convert target to binary (handles TRUE/FALSE strings)
+        y = y.astype(str).str.upper().map({'TRUE': 1, 'FALSE': 0})
+
         # Align X and y and split
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y,
-            test_size=0.2
-        )
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
         clf = LinearRegression()
         clf.fit(X_train, y_train)
         print("X_test:", X_test[:100])
