@@ -1,10 +1,11 @@
 import pandas as pd
-from sklearn.linear_model import LinearRegression
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from pathlib import Path
 import plotly.express as px
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
-import numpy as np
 
 # Define the data path relative to the script location
 DATA_PATH = Path(__file__).parent / 'data' / 'logatta.csv'
@@ -41,12 +42,12 @@ def main():
 
         # Instantiate OrdinalEncoder correctly (no data passed to constructor)
         enc = OrdinalEncoder()
-
+        
         # Encode only the categorical columns
         X[categorical_cols] = enc.fit_transform(X[categorical_cols])
 
         # Print a small sample of encoded features
-        print(X.head())
+        print(X[categorical_cols])
 
         # Create and show a plot of the target distribution
         if 'accepted for the interview' in df.columns:
@@ -60,11 +61,16 @@ def main():
 
         # Align X and y and split
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
-        clf = LinearRegression()
-        clf.fit(X_train, y_train)
+
+        pipe = Pipeline([
+            ("scaler", StandardScaler()),
+            ("model", LogisticRegression())
+        ])
+        pipe.fit(X_train, y_train)
+
         print("X_test:", X_test[:100])
-        print("Test score:", clf.score(X_test, y_test))
-        print("Sample predictions:", clf.predict(X_test)[:100])
+        print("Test score:", pipe.score(X_test, y_test))
+        print("Sample predictions:", pipe.predict(X_test)[:100])
     else:
         print("Could not proceed without data.")
 
